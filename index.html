@@ -84,15 +84,15 @@
                 </div>
             </header>
 
-            <!-- BARRA DE BÚSQUEDA Y FILTROS -->
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <!-- BARRA DE BÚSQUEDA Y FILTROS UNIFICADA -->
+            <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
                 <!-- Buscador general -->
                 <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center gap-3">
                     <span class="text-slate-400">🔍</span>
                     <input type="text" x-model="searchQuery" @input="updateCharts()" placeholder="Bilatu herria, kontaktua edo emaila..." class="bg-transparent border-none text-slate-100 w-full focus:outline-none text-sm">
                 </div>
 
-                <!-- Filtro por Sector (Primero para condicionar las empresas) -->
+                <!-- Filtro por Sector -->
                 <select x-model="selectedSektorea" @change="selectedEmpresa = ''; updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
                     <option value="">Sektore Guztiak</option>
                     <template x-for="sek in uniqueSektoreak" :key="sek">
@@ -100,7 +100,7 @@
                     </template>
                 </select>
 
-                <!-- Filtro por Empresa específica (Filtrado según sector seleccionado) -->
+                <!-- Filtro por Empresa específica -->
                 <select x-model="selectedEmpresa" @change="updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
                     <option value="">Enpresa Guztiak</option>
                     <template x-for="emp in filteredEmpresas" :key="emp">
@@ -113,6 +113,14 @@
                     <option value="">Prospekzio Egoera (Denak)</option>
                     <template x-for="eg in uniqueEgoerak" :key="eg">
                         <option :value="eg" x-text="eg"></option>
+                    </template>
+                </select>
+
+                <!-- Filtro por Municipio (Herrialdea) -->
+                <select x-model="selectedHerria" @change="updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
+                    <option value="">Udalerri Guztiak (Denak)</option>
+                    <template x-for="herri in uniqueHerriak" :key="herri">
+                        <option :value="herri" x-text="herri"></option>
                     </template>
                 </select>
             </div>
@@ -160,20 +168,20 @@
                 </div>
             </section>
 
-            <!-- GRÁFICOS VISUALES -->
+            <!-- GRÁFICOS VISUALES COMPACTOS (ALTURA REDUCIDA) -->
             <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Gráfico por Sector -->
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl lg:col-span-2">
-                    <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4">Enpresak Sektorearen Arabera</h2>
-                    <div class="relative h-64">
+                <!-- Gráfico por Sector (Compacto) -->
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl lg:col-span-2 flex flex-col justify-between">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Enpresak Sektorearen Arabera</h2>
+                    <div class="relative h-40">
                         <canvas id="sectorChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Gráfico por Estado -->
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                    <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4">Prospekzio Egoera</h2>
-                    <div class="relative h-64">
+                <!-- Gráfico por Estado (Compacto) -->
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Prospekzio Egoera Banaketa</h2>
+                    <div class="relative h-40 flex items-center justify-center">
                         <canvas id="statusChart"></canvas>
                     </div>
                 </div>
@@ -181,16 +189,8 @@
 
             <!-- DIRECTORIO DETALLADO DE EMPRESAS -->
             <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-                <div class="p-4 border-b border-slate-800 flex flex-wrap justify-between items-center gap-4">
+                <div class="p-4 border-b border-slate-800 flex justify-between items-center">
                     <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider" x-text="'Erakusten: ' + filteredRows.length + ' enpresa'"></span>
-                    
-                    <!-- Filtro rápido por Municipio -->
-                    <select x-model="selectedHerria" @change="updateCharts()" class="bg-slate-950 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs focus:outline-none cursor-pointer">
-                        <option value="">Udalerri Guztiak (Herrialdea)</option>
-                        <template x-for="herri in uniqueHerriak" :key="herri">
-                            <option :value="herri" x-text="herri"></option>
-                        </template>
-                    </select>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -245,7 +245,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA ALPINEJS, LOGIN Y GRÁFICOS -->
+    <!-- LÓGICA ALPINEJS, LOGIN Y GRÁFICOS COMPACTOS -->
     <script>
         let sectorChartInstance = null;
         let statusChartInstance = null;
@@ -331,7 +331,6 @@
                     return [...new Set(this.rows.map(r => r.sektorea))].filter(Boolean).sort();
                 },
 
-                // Las empresas se filtran dinámicamente según el sector seleccionado
                 get filteredEmpresas() {
                     let data = this.rows;
                     if (this.selectedSektorea) {
@@ -378,7 +377,7 @@
                 updateCharts() {
                     const data = this.filteredRows;
 
-                    // 1. Gráfico por Sector
+                    // 1. Gráfico por Sector (Compacto)
                     const sectorCounts = {};
                     data.forEach(r => {
                         sectorCounts[r.sektorea] = (sectorCounts[r.sektorea] || 0) + 1;
@@ -395,7 +394,7 @@
                                     label: 'Enpresa kopurua',
                                     data: Object.values(sectorCounts),
                                     backgroundColor: '#14b8a6',
-                                    borderRadius: 6
+                                    borderRadius: 4
                                 }]
                             },
                             options: {
@@ -403,14 +402,14 @@
                                 maintainAspectRatio: false,
                                 plugins: { legend: { display: false } },
                                 scales: {
-                                    y: { beginAtZero: true, ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: '#1e293b' } },
-                                    x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } }
+                                    y: { beginAtZero: true, ticks: { color: '#94a3b8', stepSize: 1, font: { size: 10 } }, grid: { color: '#1e293b' } },
+                                    x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } }
                                 }
                             }
                         });
                     }
 
-                    // 2. Gráfico por Estado
+                    // 2. Gráfico por Estado (Compacto - Doughnut)
                     const statusCounts = {};
                     data.forEach(r => {
                         statusCounts[r.egoera] = (statusCounts[r.egoera] || 0) + 1;
@@ -432,7 +431,7 @@
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 plugins: {
-                                    legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } }
+                                    legend: { position: 'right', labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } }
                                 }
                             }
                         });
