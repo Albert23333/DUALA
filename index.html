@@ -28,19 +28,27 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition flex items-center gap-2">
+                <a href="https://easo-panela.vercel.app/" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition flex items-center gap-2">
                     <span>← Dashboard Nagusia</span>
                 </a>
             </div>
         </header>
 
         <!-- BARRA DE BÚSQUEDA Y FILTROS -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Buscador -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <!-- Buscador general -->
             <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center gap-3">
                 <span class="text-slate-400">🔍</span>
-                <input type="text" x-model="searchQuery" @input="updateCharts()" placeholder="Bilatu enpresa, herria, kontaktua edo emaila..." class="bg-transparent border-none text-slate-100 w-full focus:outline-none text-sm">
+                <input type="text" x-model="searchQuery" @input="updateCharts()" placeholder="Bilatu herria, kontaktua edo emaila..." class="bg-transparent border-none text-slate-100 w-full focus:outline-none text-sm">
             </div>
+
+            <!-- Nuevo Filtro por Empresa específica -->
+            <select x-model="selectedEmpresa" @change="updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
+                <option value="">Enpresa Guztiak</option>
+                <template x-for="emp in uniqueEnpresak" :key="emp">
+                    <option :value="emp" x-text="emp"></option>
+                </template>
+            </select>
 
             <!-- Filtro por Sector -->
             <select x-model="selectedSektorea" @change="updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
@@ -195,6 +203,7 @@
             return {
                 rows: [],
                 searchQuery: '',
+                selectedEmpresa: '',
                 selectedSektorea: '',
                 selectedEgoera: '',
                 selectedHerria: '',
@@ -204,7 +213,6 @@
                 },
 
                 async loadDualaSheet() {
-                    // Enlace público publicado en CSV de tu Google Sheet (gid=233904591)
                     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvAL0T6pPxSgayn8PmY0SoI72XRkm91RI_zLPMKZ81j7d0jJIADv34aHkSDVpNeUEj82eJLfXSrOPd/pub?gid=233904591&single=true&output=csv";
 
                     try {
@@ -242,6 +250,10 @@
                     }
                 },
 
+                get uniqueEnpresak() {
+                    return [...new Set(this.rows.map(r => r.enpresa))].filter(Boolean).sort();
+                },
+
                 get uniqueSektoreak() {
                     return [...new Set(this.rows.map(r => r.sektorea))].filter(Boolean).sort();
                 },
@@ -258,13 +270,13 @@
                     return this.rows.filter(row => {
                         const q = this.searchQuery.toLowerCase();
                         const matchesSearch = !q || 
-                            row.enpresa.toLowerCase().includes(q) ||
                             row.herrialdea.toLowerCase().includes(q) ||
                             row.sektorea.toLowerCase().includes(q) ||
                             row.kontaktua.toLowerCase().includes(q) ||
                             row.email.toLowerCase().includes(q);
 
                         return matchesSearch &&
+                               (!this.selectedEmpresa || row.enpresa === this.selectedEmpresa) &&
                                (!this.selectedSektorea || row.sektorea === this.selectedSektorea) &&
                                (!this.selectedEgoera || row.egoera === this.selectedEgoera) &&
                                (!this.selectedHerria || row.herrialdea === this.selectedHerria);
