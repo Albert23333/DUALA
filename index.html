@@ -42,19 +42,19 @@
                 <input type="text" x-model="searchQuery" @input="updateCharts()" placeholder="Bilatu herria, kontaktua edo emaila..." class="bg-transparent border-none text-slate-100 w-full focus:outline-none text-sm">
             </div>
 
-            <!-- Nuevo Filtro por Empresa específica -->
-            <select x-model="selectedEmpresa" @change="updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
-                <option value="">Enpresa Guztiak</option>
-                <template x-for="emp in uniqueEnpresak" :key="emp">
-                    <option :value="emp" x-text="emp"></option>
-                </template>
-            </select>
-
-            <!-- Filtro por Sector -->
-            <select x-model="selectedSektorea" @change="updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
+            <!-- Filtro por Sector (Primero para condicionar las empresas) -->
+            <select x-model="selectedSektorea" @change="selectedEmpresa = ''; updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
                 <option value="">Sektore Guztiak</option>
                 <template x-for="sek in uniqueSektoreak" :key="sek">
                     <option :value="sek" x-text="sek"></option>
+                </template>
+            </select>
+
+            <!-- Filtro por Empresa específica (Filtrado según sector seleccionado) -->
+            <select x-model="selectedEmpresa" @change="updateCharts()" class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none cursor-pointer">
+                <option value="">Enpresa Guztiak</option>
+                <template x-for="emp in filteredEmpresas" :key="emp">
+                    <option :value="emp" x-text="emp"></option>
                 </template>
             </select>
 
@@ -250,12 +250,17 @@
                     }
                 },
 
-                get uniqueEnpresak() {
-                    return [...new Set(this.rows.map(r => r.enpresa))].filter(Boolean).sort();
-                },
-
                 get uniqueSektoreak() {
                     return [...new Set(this.rows.map(r => r.sektorea))].filter(Boolean).sort();
+                },
+
+                // Las empresas se filtran dinámicamente según el sector seleccionado
+                get filteredEmpresas() {
+                    let data = this.rows;
+                    if (this.selectedSektorea) {
+                        data = data.filter(r => r.sektorea === this.selectedSektorea);
+                    }
+                    return [...new Set(data.map(r => r.enpresa))].filter(Boolean).sort();
                 },
 
                 get uniqueEgoerak() {
